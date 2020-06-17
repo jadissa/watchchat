@@ -1,0 +1,27 @@
+## Title: watchchat
+## Notes: Watch chat for specific keywords
+## X-Category: System
+
+## Author: jadissa
+## X-Realm: Emerald Dream/Grobbulus
+## X-Website: https://github.com/jadissa/watchchat
+## X-License: All rights reserved
+# ## X-Curse-Project-ID: 379096
+
+## DefaultState: enabled
+## SavedVariables: persistence
+
+# /run print((select(4, GetBuildInfo())));
+
+## Interface: 11304
+
+# Includes
+libs\AceDB-3.0\AceDB-3.0.xml
+libs\AceDBOptions-3.0\AceDBOptions-3.0.xml
+libs\AceGUI-3.0\AceGUI-3.0.xml
+libs\AceConsole-3.0\AceConsole-3.0.xml
+libs\utility\utility.lua
+
+# boot
+db.lua
+ui.lua
