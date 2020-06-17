@@ -66,7 +66,7 @@ function ui:remove( input )
 
    local persistence = wc:getNameSpace( )
    for i, keyword in pairs( persistence[ 'watch' ] ) do
-    if string.lower( persistence[ 'watch' ][ i ] ) == string.lower( keyword ) then
+    if string.lower( input ) == string.lower( keyword ) then
       tremove( persistence[ 'watch' ], i )
       wc:warn( 'removed ' .. input )
     end
