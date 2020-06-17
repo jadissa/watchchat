@@ -121,10 +121,10 @@ function ui:listen( )
         if message == nil then
           return
         end
-        for i = 1, #watches do
-          local i, j = string.find( string.lower( msg ), string.lower( watches[ i ] ) )
+        for _, watch in pairs( watches ) do
+          local i, j = string.find( string.lower( msg ), string.lower( watch ) )
           if i ~= nil then
-            if string.sub( string.lower( msg ), i, j ) == string.lower( watches[ i ] ) then
+            if string.sub( string.lower( msg ), i, j ) == string.lower( watch ) then
               if chanNumber > 0 then SendChatMessage( 'WATCH TRIGGERED! ' .. 'channel ' .. chanName .. ' ' .. sender .. ' said: ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) ) end
             end
           end
