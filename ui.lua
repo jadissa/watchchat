@@ -109,28 +109,21 @@ function ui:listen( )
 
   local persistence = wc:getNameSpace( )
   local watches = persistence[ 'watch' ]
-  for i, watch in pairs( watches ) do
-    wc:warn( 'activated for ' .. watches[ i ] )
+  for _, watch in pairs( watches ) do
+    wc:warn( 'activated for ' .. watch )
   end
   self:help( )
 
   f:SetScript( 'OnEvent', function( self, event, msg, sender, _, chanString, _, _, _, chanNumber, chanName )
 
-    for _, channel in pairs( channels ) do
-      if chanName == channel[ 'name' ] then
-        if message == nil then
-          return
-        end
-        for _, watch in pairs( watches ) do
-          local i, j = string.find( string.lower( msg ), string.lower( watch ) )
-          if i ~= nil then
-            if string.sub( string.lower( msg ), i, j ) == string.lower( watch ) then
-              if chanNumber > 0 then SendChatMessage( 'WATCH TRIGGERED! ' .. 'channel ' .. chanName .. ' ' .. sender .. ' said: ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) ) end
-            end
-          end
-        end
+    if message == nil then
+      return
+    end
+    for _, watch in pairs( watches ) do
+      local i, j = string.find( string.lower( msg ), string.lower( watch ) )
+      if i ~= nil then
+        SendChatMessage( chanName .. '/' .. sender .. ': ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) ) 
       end
-
     end
 
   end )
@@ -147,8 +140,8 @@ function getChannels( )
   for i=1, #chanList, 3 do
     table.insert( channels, {
       id = chanList[ i ],
-      name = chanList[ i+1 ],
-      isDisabled = chanList[ i+2 ],
+      name = chanList[ i + 1 ],
+      isDisabled = chanList[ i + 2 ],
     } )
   end
   return channels
