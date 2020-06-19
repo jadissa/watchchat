@@ -100,11 +100,16 @@ end
 function ui:listen( )
 
   local f = CreateFrame( 'Frame' )
+  f:RegisterEvent( 'CHAT_MSG_GUILD' )
   f:RegisterEvent( 'CHAT_MSG_CHANNEL' )
   f:RegisterEvent( 'CHAT_MSG_SAY' )
   local channels = getChannels( )
   for _, channel in pairs( channels ) do
     wc:notify( 'WATCHING ' .. channel[ 'name' ] )
+  end
+  local guild_name = GetGuildInfo( 'player' )
+  if guild_name ~= nil then
+    wc:notify( 'WATCHING ' .. guild_name )
   end
 
   local persistence = wc:getNameSpace( )
@@ -114,15 +119,15 @@ function ui:listen( )
   end
   self:help( )
 
-  f:SetScript( 'OnEvent', function( self, event, msg, sender, _, chanString, _, _, _, chanNumber, chanName )
+  f:SetScript( 'OnEvent', function( self, event, msg, sender, _, channel_string, _, _, _, channel_num, channel )
 
-    if message == nil then
+    if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
       return
     end
     for _, watch in pairs( watches ) do
       local i, j = string.find( string.lower( msg ), string.lower( watch ) )
       if i ~= nil then
-        SendChatMessage( chanName .. '/' .. sender .. ': ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) ) 
+        ChatThrottleLib:SendChatMessage( 'NORMAL', '>', channel .. '/' .. sender .. ': ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) )
       end
     end
 
