@@ -103,7 +103,7 @@ function ui:listen( )
   f:RegisterEvent( 'CHAT_MSG_GUILD' )
   f:RegisterEvent( 'CHAT_MSG_CHANNEL' )
   f:RegisterEvent( 'CHAT_MSG_SAY' )
-  local channels = getChannels( )
+  local channels = self:getChannels( )
   for _, channel in pairs( channels ) do
     wc:notify( 'WATCHING ' .. channel[ 'name' ] )
   end
@@ -138,7 +138,7 @@ end
 -- get joined channels
 -- 
 -- returns object
-function getChannels( )
+function ui:getChannels( )
 
   local channels = { }
   local chanList = { GetChannelList( ) }
