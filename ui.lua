@@ -103,6 +103,7 @@ function ui:listen( )
   f:RegisterEvent( 'CHAT_MSG_GUILD' )
   f:RegisterEvent( 'CHAT_MSG_CHANNEL' )
   f:RegisterEvent( 'CHAT_MSG_SAY' )
+  f:RegisterEvent( 'CHAT_MSG_CHANNEL_NOTICE' )
   local channels = self:getChannels( )
   for _, channel in pairs( channels ) do
     wc:notify( 'WATCHING ' .. channel[ 'name' ] )
@@ -121,13 +122,17 @@ function ui:listen( )
 
   f:SetScript( 'OnEvent', function( self, event, msg, sender, _, channel_string, _, _, _, channel_num, channel )
 
-    if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
-      return
-    end
-    for _, watch in pairs( watches ) do
-      local i, j = string.find( string.lower( msg ), string.lower( watch ) )
-      if i ~= nil then
-        ChatThrottleLib:SendChatMessage( 'NORMAL', '>', channel .. '/' .. sender .. ': ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) )
+    if msg == 'YOU_CHANGED' then
+      wc:notify( '/reload to start watching this channel' )
+    else
+      if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
+        return
+      end
+      for _, watch in pairs( watches ) do
+        local i, j = string.find( string.lower( msg ), string.lower( watch ) )
+        if i ~= nil then
+          ChatThrottleLib:SendChatMessage( 'NORMAL', '>', channel .. '/' .. sender .. ': ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) )
+        end
       end
     end
 
