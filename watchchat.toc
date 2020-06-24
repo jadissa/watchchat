@@ -6,7 +6,7 @@
 ## X-Realm: Emerald Dream/Grobbulus
 ## X-Website: https://github.com/jadissa/watchchat
 ## X-License: All rights reserved
-# ## X-Curse-Project-ID: 390275
+## X-Curse-Project-ID: 390275
 
 ## DefaultState: enabled
 ## SavedVariables: persistence
