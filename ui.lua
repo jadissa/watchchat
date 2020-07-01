@@ -11,7 +11,18 @@ local utility = LibStub:GetLibrary( 'utility' )
 --
 -- returns void
 function ui:init( )
+
   self:RegisterChatCommand( 'wc', 'processInput' )
+  self[ 'channels' ]    = self:getChannels( )
+  self[ 'persistence' ] = wc:getNameSpace( )
+  self[ 'watches' ]     = self[ 'persistence' ][ 'watch' ] or { }
+  self[ 'events' ]      = {
+    'CHAT_MSG_GUILD',
+    'CHAT_MSG_CHANNEL',
+    'CHAT_MSG_SAY',
+    'CHAT_MSG_PARTY',
+  }
+
 end
 
 -- process slash commands
@@ -43,18 +54,17 @@ function ui:add( input )
 
   local iterator = 0
   local found = false
-  local persistence = wc:getNameSpace( )
-  for i, keyword in pairs( persistence[ 'watch' ] ) do
-    if input == keyword then
+  for i, keyword in pairs( self[ 'watches' ] ) do
+    if strlower( input ) == strlower( keyword ) then
       iterator = i
       found = true
     end
   end
   if not found then
-    tinsert( persistence[ 'watch' ], input )
-    wc:notify( 'added ' .. input )
+    tinsert( self[ 'watches' ], input )
+    wc:notify( 'watching ' .. input )
   else
-    wc:notify( 'already watching ' .. input )
+    wc:warn( 'already watching ' .. input )
   end
 
 end
@@ -64,11 +74,10 @@ end
 -- returns void
 function ui:remove( input )
 
-   local persistence = wc:getNameSpace( )
-   for i, keyword in pairs( persistence[ 'watch' ] ) do
-    if string.lower( input ) == string.lower( keyword ) then
-      tremove( persistence[ 'watch' ], i )
-      wc:warn( 'removed ' .. input )
+   for i, keyword in pairs( self[ 'watches' ] ) do
+    if strlower( input ) == strlower( keyword ) then
+      tremove( self[ 'watches' ], i )
+      wc:warn( 'no longer watching ' .. input )
     end
    end
 
@@ -79,9 +88,8 @@ end
 -- returns void
 function ui:list( )
 
-  local persistence = wc:getNameSpace( )
-  for i, keyword in pairs( persistence[ 'watch' ] ) do
-    wc:warn( 'activated for ' .. keyword )
+  for i, keyword in pairs( self[ 'watches' ] ) do
+    wc:notify( 'watching ' .. keyword )
   end
 
 end
@@ -100,11 +108,10 @@ end
 function ui:listen( )
 
   local f = CreateFrame( 'Frame' )
-  f:RegisterEvent( 'CHAT_MSG_GUILD' )
-  f:RegisterEvent( 'CHAT_MSG_CHANNEL' )
-  f:RegisterEvent( 'CHAT_MSG_SAY' )
-  local channels = self:getChannels( )
-  for _, channel in pairs( channels ) do
+  for _, event in ipairs( self[ 'events' ] ) do
+    f:RegisterEvent( event )
+  end
+  for _, channel in pairs( self[ 'channels' ] ) do
     wc:notify( 'WATCHING ' .. channel[ 'name' ] )
   end
   local guild_name = GetGuildInfo( 'player' )
@@ -112,20 +119,13 @@ function ui:listen( )
     wc:notify( 'WATCHING ' .. guild_name )
   end
 
-  local persistence = wc:getNameSpace( )
-  local watches = persistence[ 'watch' ]
-  for _, watch in pairs( watches ) do
-    wc:warn( 'activated for ' .. watch )
-  end
-  self:help( )
-
   f:SetScript( 'OnEvent', function( self, event, msg, sender, _, channel_string, _, _, _, channel_num, channel )
 
     if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
       return
     end
-    for _, watch in pairs( watches ) do
-      local i, j = string.find( string.lower( msg ), string.lower( watch ) )
+    for _, watch in pairs( ui[ 'watches' ] ) do
+      local i, j = strfind( strlower( msg ), strlower( watch ) )
       if i ~= nil then
         ChatThrottleLib:SendChatMessage( 'NORMAL', '>', channel .. '/' .. sender .. ': ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) )
       end
@@ -143,7 +143,7 @@ function ui:getChannels( )
   local channels = { }
   local chanList = { GetChannelList( ) }
   for i=1, #chanList, 3 do
-    table.insert( channels, {
+    tinsert( channels, {
       id = chanList[ i ],
       name = chanList[ i + 1 ],
       isDisabled = chanList[ i + 2 ],
