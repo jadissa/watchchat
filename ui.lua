@@ -15,7 +15,17 @@ function ui:init( )
   self:RegisterChatCommand( 'wc', 'processInput' )
   self[ 'channels' ]    = self:getChannels( )
   self[ 'persistence' ] = wc:getNameSpace( )
+
+  --[[
+  -- clear out watch
+  self[ 'persistence' ][ 'watch' ]  = { }
+
+  -- clear out ignore
+  self[ 'persistence' ][ 'ignore' ] = { }
+  ]]
+
   self[ 'watches' ]     = self[ 'persistence' ][ 'watch' ] or { }
+  self[ 'ignores' ]     = self[ 'persistence' ][ 'ignore' ] or { }
   self[ 'events' ]      = {
     'CHAT_MSG_GUILD',
     'CHAT_MSG_CHANNEL',
@@ -35,10 +45,14 @@ function ui:processInput( input )
     tinsert( tokens, token )
   end
 
-  if tokens[ 1 ] == 'add' then
-  	self:add( tokens[ 2 ] )
-  elseif tokens[ 1 ] == 'remove' then
-    self:remove( tokens[ 2 ] )
+  if tokens[ 1 ] == 'watch' then
+  	self:watch( tokens[ 2 ] )
+  elseif tokens[ 1 ] == 'unwatch' then
+    self:unwatch( tokens[ 2 ] )
+  elseif tokens[ 1 ] == 'ignore' then
+    self:ignore( tokens[ 2 ] )
+  elseif tokens[ 1 ] == 'unignore' then
+    self:unignore( tokens[ 2 ] )
   elseif tokens[ 1 ] == 'list' then
     self:list( )
   else
@@ -50,7 +64,7 @@ end
 -- add to watch list
 -- 
 -- returns void
-function ui:add( input )
+function ui:watch( input )
 
   local iterator = 0
   local found = false
@@ -72,7 +86,7 @@ end
 -- remove from watch list
 -- 
 -- returns void
-function ui:remove( input )
+function ui:unwatch( input )
 
    for i, keyword in pairs( self[ 'watches' ] ) do
     if strlower( input ) == strlower( keyword ) then
@@ -83,7 +97,43 @@ function ui:remove( input )
 
 end
 
--- report watch list
+-- add to ignore list
+-- 
+-- returns void
+function ui:ignore( input )
+
+  local iterator = 0
+  local found = false
+  for i, keyword in pairs( self[ 'ignores' ] ) do
+    if input == keyword then
+      iterator = i
+      found = true
+    end
+  end
+  if not found then
+    tinsert( self[ 'ignores' ], input )
+    wc:notify( 'ignoring ' .. input )
+  else
+    wc:warn( 'already ignoring ' .. input )
+  end
+
+end
+
+-- remove from ignore list
+-- 
+-- returns void
+function ui:unignore( input )
+
+   for i, keyword in pairs( self[ 'ignores' ] ) do
+    if strlower( input ) == strlower( keyword ) then
+      tremove( self[ 'ignores' ], i )
+      wc:warn( 'no longer ignoring ' .. input )
+    end
+   end
+
+end
+
+-- report list
 -- 
 -- returns void
 function ui:list( )
@@ -91,14 +141,38 @@ function ui:list( )
   for i, keyword in pairs( self[ 'watches' ] ) do
     wc:notify( 'watching ' .. keyword )
   end
+  for i, keyword in pairs( self[ 'ignores' ] ) do
+    wc:notify( 'ignoring ' .. keyword )
+  end
 
 end
 
+-- help
+-- 
+-- returns void
 function ui:help( )
 
-  wc:warn( 'try /wc add keyword' )
-  wc:warn( 'try /wc remove keyword' )
+  wc:warn( 'try /wc watch keyword' )
+  wc:warn( 'try /wc unwatch keyword' )
+  wc:warn( 'try /wc ignore keyword' )
+  wc:warn( 'try /wc unignore keyword' )
   wc:warn( 'try /wc list' )
+
+end
+
+-- filter garbage
+-- 
+-- returns void
+function ui:filter( event, message, sender, ... )
+
+  if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
+    return
+  end
+  for _, ignore in pairs( ui[ 'ignores' ] ) do
+    if strlower( message ):find( strlower( ignore ) ) then
+      return true
+    end
+  end
 
 end
 
@@ -109,6 +183,7 @@ function ui:listen( )
 
   local f = CreateFrame( 'Frame' )
   for _, event in ipairs( self[ 'events' ] ) do
+    ChatFrame_AddMessageEventFilter( event, ui.filter )
     f:RegisterEvent( event )
   end
   for _, channel in pairs( self[ 'channels' ] ) do
@@ -118,16 +193,21 @@ function ui:listen( )
   if guild_name ~= nil then
     wc:notify( 'WATCHING ' .. guild_name )
   end
+  self:help( )
 
-  f:SetScript( 'OnEvent', function( self, event, msg, sender, _, channel_string, _, _, _, channel_num, channel )
+  f:SetScript( 'OnEvent', function( self, event, message, sender, _, _, _, _, _, _, channel )
 
     if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
       return
     end
+    for _, ignore in pairs( ui[ 'ignores' ] ) do
+      if strlower( message ):find( strlower( ignore ) ) then
+        return
+      end
+    end
     for _, watch in pairs( ui[ 'watches' ] ) do
-      local i, j = strfind( strlower( msg ), strlower( watch ) )
-      if i ~= nil then
-        ChatThrottleLib:SendChatMessage( 'NORMAL', '>', channel .. '/' .. sender .. ': ' .. msg, 'WHISPER', nil, GetUnitName( 'player' ) )
+      if strlower( message ):find( strlower( watch ) ) then
+        ChatThrottleLib:SendChatMessage( 'NORMAL', '>', channel .. '/' .. sender .. ': ' .. message, 'WHISPER', nil, GetUnitName( 'player' ) )
       end
     end
 
