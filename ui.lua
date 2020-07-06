@@ -195,19 +195,27 @@ function ui:listen( )
   end
   self:help( )
 
-  f:SetScript( 'OnEvent', function( self, event, message, sender, _, _, _, _, _, _, channel )
+  f:SetScript( 'OnEvent', function( self, event, message, sender, _, _, _, _, _, index, channel )
 
     if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
-      return
+      --return
     end
     for _, ignore in pairs( ui[ 'ignores' ] ) do
       if strlower( message ):find( strlower( ignore ) ) then
         return
       end
     end
+
     for _, watch in pairs( ui[ 'watches' ] ) do
       if strlower( message ):find( strlower( watch ) ) then
-        ChatThrottleLib:SendChatMessage( 'NORMAL', '>', channel .. '/' .. sender .. ': ' .. message, 'WHISPER', nil, GetUnitName( 'player' ) )
+        
+        local display_text = sender .. ' in ' .. channel
+        local l  = '|Hplayer:' .. sender .. ':' .. index .. '|h' .. display_text .. '|h'
+        
+        local b = CreateFrame( 'button' )
+        local sender_link = b:GetText( b:SetFormattedText( '[' .. l .. ']' ) )
+        
+        wc:notify( sender_link .. ' ' .. message )
       end
     end
 
