@@ -198,7 +198,7 @@ function ui:listen( )
   f:SetScript( 'OnEvent', function( self, event, message, sender, _, _, _, _, _, index, channel )
 
     if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
-      --return
+      return
     end
     for _, ignore in pairs( ui[ 'ignores' ] ) do
       if strlower( message ):find( strlower( ignore ) ) then
