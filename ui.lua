@@ -26,11 +26,14 @@ function ui:init( )
 
   self[ 'watches' ]     = self[ 'persistence' ][ 'watch' ] or { }
   self[ 'ignores' ]     = self[ 'persistence' ][ 'ignore' ] or { }
+  self[ 'options' ]     = self[ 'persistence' ][ 'options' ]
+  utility:dump( self['options' ] )
   self[ 'events' ]      = {
     'CHAT_MSG_GUILD',
     'CHAT_MSG_CHANNEL',
     'CHAT_MSG_SAY',
     'CHAT_MSG_PARTY',
+    'CHAT_MSG_WHISPER',
   }
 
 end
@@ -55,9 +58,21 @@ function ui:processInput( input )
     self:unignore( tokens[ 2 ] )
   elseif tokens[ 1 ] == 'list' then
     self:list( )
+  elseif tokens[ 1 ] == 'sound' then
+    self:sound( )
   else
   	self:help( )
   end
+
+end
+
+function ui:color( input )
+
+  return CreateColor(
+    wc[ 'theme' ][ 'info' ][ 'r' ], 
+    wc[ 'theme' ][ 'info' ][ 'g' ], 
+    wc[ 'theme' ][ 'info' ][ 'b' ] 
+  ):WrapTextInColorCode( input )
 
 end
 
@@ -142,7 +157,22 @@ function ui:list( )
     wc:notify( 'watching ' .. keyword )
   end
   for i, keyword in pairs( self[ 'ignores' ] ) do
-    wc:notify( 'ignoring ' .. keyword )
+    wc:warn( 'ignoring ' .. keyword )
+  end
+
+end
+
+-- toggles sound
+-- 
+-- returns void
+function ui:sound( )
+
+  if self[ 'options' ][ 'sound' ] == false then
+    self[ 'options' ][ 'sound' ]  = true
+    wc:warn( 'enabled sound' )
+  else
+    self[ 'options' ][ 'sound' ]  = false
+    wc:warn( 'disabled sound' )
   end
 
 end
@@ -156,7 +186,13 @@ function ui:help( )
   wc:warn( 'try /wc unwatch keyword' )
   wc:warn( 'try /wc ignore keyword' )
   wc:warn( 'try /wc unignore keyword' )
-  wc:warn( 'try /wc list' )
+  wc:warn( '-- display keywords: try /wc list' )
+  wc:warn( '-- toggle sound: try /wc sound' )
+  if self[ 'options' ][ 'sound' ] == true then
+    wc:notify( 'sound is enabled' )
+  else
+    wc:warn( 'sound is disabled' )
+  end
 
 end
 
@@ -171,6 +207,17 @@ function ui:filter( event, message, sender, ... )
   for _, ignore in pairs( ui[ 'ignores' ] ) do
     if strlower( message ):find( strlower( ignore ) ) then
       return true
+    end
+  end
+  for _, watch in pairs( ui[ 'watches' ] ) do
+    if strlower( message ):find( strlower( watch ) ) then
+
+      local prefix = ui:color( wc:GetName( ) .. ' {diamond} ' )
+      if ui[ 'options' ][ 'sound' ] == true then
+        PlaySound( SOUNDKIT.TELL_MESSAGE )
+      end
+
+      return false, string.join( ' ', prefix, message ), sender, ...
     end
   end
 
@@ -194,32 +241,6 @@ function ui:listen( )
     wc:notify( 'WATCHING ' .. guild_name )
   end
   self:help( )
-
-  f:SetScript( 'OnEvent', function( self, event, message, sender, _, _, _, _, _, index, channel )
-
-    if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
-      return
-    end
-    for _, ignore in pairs( ui[ 'ignores' ] ) do
-      if strlower( message ):find( strlower( ignore ) ) then
-        return
-      end
-    end
-
-    for _, watch in pairs( ui[ 'watches' ] ) do
-      if strlower( message ):find( strlower( watch ) ) then
-        
-        local display_text = sender .. ' in ' .. channel
-        local l  = '|Hplayer:' .. sender .. ':' .. index .. '|h' .. display_text .. '|h'
-        
-        local b = CreateFrame( 'button' )
-        local sender_link = b:GetText( b:SetFormattedText( '[' .. l .. ']' ) )
-        
-        wc:notify( sender_link .. ' ' .. message )
-      end
-    end
-
-  end )
 
 end
 

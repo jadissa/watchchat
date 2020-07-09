@@ -117,9 +117,12 @@ end
 -- returns void
 function wc:OnInitialize( )
 
-  local defaults = { 
-    profile = { }
-  }
+  local defaults = { }
+  defaults[ 'profile' ] = { }
+  defaults[ 'profile' ][ 'options' ]  = { }
+  defaults[ 'profile' ][ 'options' ][ 'sound' ]  = true
+  defaults[ 'profile' ][ 'options' ][ 'verbose' ]  = true
+
   self[ 'db' ] = LibStub( 'AceDB-3.0' ):New(
     'persistence', defaults, true
   )
