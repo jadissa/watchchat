@@ -66,12 +66,15 @@ function ui:processInput( input )
 
 end
 
-function ui:color( input )
+function ui:color( input, theme )
 
+  if theme == nil then
+    theme = 'info'
+  end
   return CreateColor(
-    wc[ 'theme' ][ 'info' ][ 'r' ], 
-    wc[ 'theme' ][ 'info' ][ 'g' ], 
-    wc[ 'theme' ][ 'info' ][ 'b' ] 
+    wc[ 'theme' ][ theme ][ 'r' ], 
+    wc[ 'theme' ][ theme ][ 'g' ], 
+    wc[ 'theme' ][ theme ][ 'b' ] 
   ):WrapTextInColorCode( input )
 
 end
@@ -216,8 +219,7 @@ function ui:filter( event, message, sender, ... )
       if ui[ 'options' ][ 'sound' ] == true then
         PlaySound( SOUNDKIT.TELL_MESSAGE )
       end
-
-      return false, string.join( ' ', prefix, message ), sender, ...
+      return false, string.join( '', prefix, ui:color( message, 'text' ) ), sender, ...
     end
   end
 
