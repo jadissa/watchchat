@@ -27,7 +27,6 @@ function ui:init( )
   self[ 'watches' ]     = self[ 'persistence' ][ 'watch' ] or { }
   self[ 'ignores' ]     = self[ 'persistence' ][ 'ignore' ] or { }
   self[ 'options' ]     = self[ 'persistence' ][ 'options' ]
-  utility:dump( self['options' ] )
   self[ 'events' ]      = {
     'CHAT_MSG_GUILD',
     'CHAT_MSG_CHANNEL',
@@ -47,7 +46,6 @@ function ui:processInput( input )
   for token in string.gmatch( input, "[^%s]+" ) do
     tinsert( tokens, token )
   end
-
   if tokens[ 1 ] == 'watch' then
   	self:watch( tokens[ 2 ] )
   elseif tokens[ 1 ] == 'unwatch' then
@@ -66,6 +64,9 @@ function ui:processInput( input )
 
 end
 
+-- colorize text
+--
+-- returns void
 function ui:color( input, theme )
 
   if theme == nil then
@@ -199,7 +200,7 @@ function ui:help( )
 
 end
 
--- filter garbage
+-- filter chat
 -- 
 -- returns void
 function ui:filter( event, message, sender, ... )
