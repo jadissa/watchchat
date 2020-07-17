@@ -13,8 +13,9 @@ local utility = LibStub:GetLibrary( 'utility' )
 function ui:init( )
 
   self:RegisterChatCommand( 'wc', 'processInput' )
-  self[ 'channels' ]    = self:getChannels( )
-  self[ 'persistence' ] = wc:getNameSpace( )
+  self[ 'channels' ]              = self:getChannels( )
+  self[ 'persistence' ]           = wc:getNameSpace( )
+  self[ 'persistence' ][ 'seen' ] = { }
 
   --[[
   -- clear out watch
@@ -27,6 +28,7 @@ function ui:init( )
   self[ 'watches' ]     = self[ 'persistence' ][ 'watch' ] or { }
   self[ 'ignores' ]     = self[ 'persistence' ][ 'ignore' ] or { }
   self[ 'options' ]     = self[ 'persistence' ][ 'options' ]
+  self[ 'seen' ]        = self[ 'persistence' ][ 'seen' ]
   self[ 'events' ]      = {
     'CHAT_MSG_GUILD',
     'CHAT_MSG_CHANNEL',
@@ -34,6 +36,7 @@ function ui:init( )
     'CHAT_MSG_PARTY',
     'CHAT_MSG_WHISPER',
   }
+  self[ 'limit' ]       = #self[ 'events' ] * 4
 
 end
 
@@ -58,6 +61,8 @@ function ui:processInput( input )
     self:list( )
   elseif tokens[ 1 ] == 'sound' then
     self:sound( )
+  elseif tokens[ 1 ] == 'limit' then
+    self:rate( )
   else
   	self:help( )
   end
@@ -181,6 +186,21 @@ function ui:sound( )
 
 end
 
+-- toggles limit
+-- 
+-- returns void
+function ui:rate( )
+
+  if self[ 'options' ][ 'rate_limit' ] == false then
+    self[ 'options' ][ 'rate_limit' ]  = true
+    wc:warn( 'enabled limit' )
+  else
+    self[ 'options' ][ 'rate_limit' ]  = false
+    wc:warn( 'disabled limit' )
+  end
+
+end
+
 -- help
 -- 
 -- returns void
@@ -192,10 +212,16 @@ function ui:help( )
   wc:warn( 'try /wc unignore keyword' )
   wc:warn( '-- display keywords: try /wc list' )
   wc:warn( '-- toggle sound: try /wc sound' )
+  wc:warn( '-- toggle limit: try /wc limit' )
   if self[ 'options' ][ 'sound' ] == true then
     wc:notify( 'sound is enabled' )
   else
     wc:warn( 'sound is disabled' )
+  end
+  if self[ 'options' ][ 'rate_limit' ] == true then
+    wc:notify( 'limit is enabled' )
+  else
+    wc:warn( 'limit is disabled' )
   end
 
 end
@@ -204,26 +230,34 @@ end
 -- 
 -- returns void
 function ui:filter( event, message, sender, ... )
-
+  
   if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
-    return
+    return true
   end
   for _, ignore in pairs( ui[ 'ignores' ] ) do
     if strlower( message ):find( strlower( ignore ) ) then
       return true
     end
   end
+  local found = false
   for _, watch in pairs( ui[ 'watches' ] ) do
     if strlower( message ):find( strlower( watch ) ) then
-
-      local prefix = ui:color( wc:GetName( ) .. ' {diamond} ' )
-      if ui[ 'options' ][ 'sound' ] == true then
-        PlaySound( SOUNDKIT.TELL_MESSAGE )
-      end
-      return false, string.join( '', prefix, ui:color( message, 'text' ) ), sender, ...
+      found = true
     end
   end
-
+  if found == true then
+    wc:cache( sender, message )
+    if ui[ 'options' ][ 'rate_limit' ] == true then
+      if ui[ 'seen' ][ sender ][ message ][ 'count' ] >= ui[ 'limit' ] then
+        return true
+      end
+    end
+    local prefix = ui:color( wc:GetName( ) .. ' {diamond} ' )
+    if ui[ 'options' ][ 'sound' ] == true then
+      PlaySound( SOUNDKIT.TELL_MESSAGE )
+    end
+    return false, string.join( '', prefix, ui:color( message, 'text' ) ), sender, ...
+  end
 end
 
 -- watch chat
@@ -243,6 +277,14 @@ function ui:listen( )
   if guild_name ~= nil then
     wc:notify( 'WATCHING ' .. guild_name )
   end
+  local i = CreateFrame( 'Frame' )
+  i:RegisterEvent( 'PLAYER_LOGOUT' )
+  local function logoutHandler( self, event, ... )
+    if event == 'PLAYER_LOGOUT' then
+      ui[ 'seen' ]  = { }
+    end
+  end
+  i:SetScript( 'OnEvent', logoutHandler )
   self:help( )
 
 end

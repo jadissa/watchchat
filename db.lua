@@ -68,6 +68,25 @@ function wc:warn( ... )
 
 end
 
+function wc:cache( sender, message )
+
+  if sender == nil or message == nil then
+    return
+  end
+  local persistence = self:getNameSpace( )
+  if persistence[ 'seen' ][ sender ] == nil then
+    persistence[ 'seen' ][ sender ] = { }
+  end
+  if persistence[ 'seen' ][ sender ][ message ] == nil then
+    persistence[ 'seen' ][ sender ][ message ] = {
+      count = 1
+    }
+  else
+    persistence[ 'seen' ][ sender ][ message ][ 'count' ] = persistence[ 'seen' ][ sender ][ message ][ 'count' ] + 1
+  end
+
+end
+
 -- persistence reference
 --
 -- returns table
@@ -119,9 +138,11 @@ function wc:OnInitialize( )
 
   local defaults = { }
   defaults[ 'profile' ] = { }
+  defaults[ 'profile' ][ 'seen' ] = { }
   defaults[ 'profile' ][ 'options' ]  = { }
   defaults[ 'profile' ][ 'options' ][ 'sound' ]  = true
   defaults[ 'profile' ][ 'options' ][ 'verbose' ]  = true
+  defaults[ 'profile' ][ 'options' ][ 'rate_limit' ]  = true
 
   self[ 'db' ] = LibStub( 'AceDB-3.0' ):New(
     'persistence', defaults, true
