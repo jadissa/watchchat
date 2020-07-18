@@ -232,7 +232,7 @@ end
 function ui:filter( event, message, sender, ... )
   
   if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
-    return true
+    --return true
   end
   for _, ignore in pairs( ui[ 'ignores' ] ) do
     if strlower( message ):find( strlower( ignore ) ) then
