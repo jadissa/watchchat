@@ -98,7 +98,7 @@ end
 --
 -- returns table
 function wc:getNameSpace( )
-  return self:getDB( )[ 'profile' ]
+  return self:getDB( )[ 'char' ]
 end
 
 -- persistence wipe handler
@@ -137,15 +137,17 @@ end
 function wc:OnInitialize( )
 
   local defaults = { }
-  defaults[ 'profile' ] = { }
-  defaults[ 'profile' ][ 'seen' ] = { }
-  defaults[ 'profile' ][ 'options' ]  = { }
-  defaults[ 'profile' ][ 'options' ][ 'sound' ]  = true
-  defaults[ 'profile' ][ 'options' ][ 'verbose' ]  = true
-  defaults[ 'profile' ][ 'options' ][ 'rate_limit' ]  = true
-
+  defaults[ 'char' ] = { }
+  defaults[ 'char' ][ 'watch' ] = { }
+  defaults[ 'char' ][ 'ignore' ] = { }
+  defaults[ 'char' ][ 'options' ]  = { }
+  defaults[ 'char' ][ 'options' ][ 'sound' ]  = true
+  defaults[ 'char' ][ 'options' ][ 'verbose' ]  = true
+  defaults[ 'char' ][ 'options' ][ 'rate_limit' ]  = true
+  defaults[ 'char' ][ 'options' ][ 'pause_notify' ]  = false
+  defaults[ 'char' ][ 'seen' ] = { }
   self[ 'db' ] = LibStub( 'AceDB-3.0' ):New(
-    'persistence', defaults, true
+    'wc', defaults, true
   )
 
 end

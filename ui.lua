@@ -63,6 +63,8 @@ function ui:processInput( input )
     self:sound( )
   elseif tokens[ 1 ] == 'limit' then
     self:rate( )
+  elseif tokens[ 1 ] == 'notify' then
+    self:notify( )
   else
   	self:help( )
   end
@@ -201,18 +203,34 @@ function ui:rate( )
 
 end
 
+-- toggles notify
+-- 
+-- returns void
+function ui:notify( )
+
+  if self[ 'options' ][ 'pause_notify' ] == false then
+    self[ 'options' ][ 'pause_notify' ]  = true
+    wc:warn( 'diabled notify' )
+  else
+    self[ 'options' ][ 'pause_notify' ]  = false
+    wc:warn( 'enabled notify' )
+  end
+
+end
+
 -- help
 -- 
 -- returns void
 function ui:help( )
 
-  wc:warn( 'try /wc watch keyword' )
-  wc:warn( 'try /wc unwatch keyword' )
-  wc:warn( 'try /wc ignore keyword' )
-  wc:warn( 'try /wc unignore keyword' )
+  wc:warn( '-- watch keyword: try /wc watch' )
+  wc:warn( '-- unwatch keyword: try /wc unwatch' )
+  wc:warn( '-- ignore keyword: try /wc ignore' )
+  wc:warn( '-- unignore keyword: try /wc unignore' )
   wc:warn( '-- display keywords: try /wc list' )
   wc:warn( '-- toggle sound: try /wc sound' )
   wc:warn( '-- toggle limit: try /wc limit' )
+  wc:warn( '-- toggle notify: try /wc notify' )
   if self[ 'options' ][ 'sound' ] == true then
     wc:notify( 'sound is enabled' )
   else
@@ -222,6 +240,11 @@ function ui:help( )
     wc:notify( 'limit is enabled' )
   else
     wc:warn( 'limit is disabled' )
+  end
+  if self[ 'options' ][ 'pause_notify' ] == true then
+    wc:notify( 'notify is disabled' )
+  else
+    wc:warn( 'notify is enabled' )
   end
 
 end
@@ -238,6 +261,9 @@ function ui:filter( event, message, sender, ... )
     if strlower( message ):find( strlower( ignore ) ) then
       return true
     end
+  end
+  if ui[ 'options' ][ 'pause_notify' ] == true then
+    return false, message, sender, ...
   end
   local found = false
   for _, watch in pairs( ui[ 'watches' ] ) do

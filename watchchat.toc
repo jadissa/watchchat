@@ -9,7 +9,7 @@
 ## X-Curse-Project-ID: 390275
 
 ## DefaultState: enabled
-## SavedVariables: persistence
+## SavedVariables: wc
 
 ## Interface: 11305
 #/run print((select(4, GetBuildInfo())));
