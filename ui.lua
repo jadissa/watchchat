@@ -242,9 +242,9 @@ function ui:help( )
     wc:warn( 'limit is disabled' )
   end
   if self[ 'options' ][ 'pause_notify' ] == true then
-    wc:notify( 'notify is disabled' )
+    wc:warn( 'notify is disabled' )
   else
-    wc:warn( 'notify is enabled' )
+    wc:notify( 'notify is enabled' )
   end
 
 end
