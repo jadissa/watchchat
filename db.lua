@@ -4,7 +4,7 @@
 
 -- 
 local utility   = LibStub:GetLibrary( 'utility' )
-local wc  = LibStub( 'AceAddon-3.0' ):NewAddon( 'wc' )
+local wc  = LibStub( 'AceAddon-3.0' ):NewAddon( 'wc', 'AceConsole-3.0' )
 
 wc[ 'messenger' ] = _G[ 'DEFAULT_CHAT_FRAME' ]
 wc[ 'theme' ] = {
@@ -41,7 +41,7 @@ end
 -- notice message handler
 --
 -- returns void
-function wc:notify( ... )
+function wc:info( ... )
 
   local prefix = CreateColor(
     self[ 'theme' ][ 'info' ][ 'r' ], 
@@ -94,10 +94,26 @@ function wc:getDB( )
   return self[ 'db' ]
 end
 
--- persistence reference
+-- character persistence reference
 --
 -- returns table
 function wc:getNameSpace( )
+  local db = self:getDB( )
+  if db == nil then
+    local defaults = { }
+    defaults[ 'char' ] = { }
+    defaults[ 'char' ][ 'watch' ] = { }
+    defaults[ 'char' ][ 'ignore' ] = { }
+    defaults[ 'char' ][ 'options' ]  = { }
+    defaults[ 'char' ][ 'options' ][ 'sound' ]  = true
+    defaults[ 'char' ][ 'options' ][ 'verbose' ]  = true
+    defaults[ 'char' ][ 'options' ][ 'rate_limit' ]  = true
+    defaults[ 'char' ][ 'options' ][ 'pause_notify' ]  = false
+    defaults[ 'char' ][ 'seen' ] = { }
+    self[ 'db' ] = LibStub( 'AceDB-3.0' ):New(
+      'wc', defaults, true
+    )
+  end
   return self:getDB( )[ 'char' ]
 end
 
@@ -106,58 +122,4 @@ end
 -- returns table
 function wc:wipeDB( )
   return self:getDB( ):ResetDB( )
-end
-
--- set/get configuration
--- if it needs to be modified, a copy should be made
--- keep this copy pristine and in original condition
---
--- returns table
-function wc:getConfig( )
-
-  local persistence = self:getNameSpace( )
-  if persistence[ 'watch' ] ~= nil then
-    return persistence[ 'watch' ]
-  end
-  persistence[ 'watch' ] = { }
-  return persistence[ 'watch' ]
-
-end
-
--- build baseline data
---
--- returns void
-function wc:init( )
-  self:getConfig( )
-end
-
--- register persistence
---
--- returns void
-function wc:OnInitialize( )
-
-  local defaults = { }
-  defaults[ 'char' ] = { }
-  defaults[ 'char' ][ 'watch' ] = { }
-  defaults[ 'char' ][ 'ignore' ] = { }
-  defaults[ 'char' ][ 'options' ]  = { }
-  defaults[ 'char' ][ 'options' ][ 'sound' ]  = true
-  defaults[ 'char' ][ 'options' ][ 'verbose' ]  = true
-  defaults[ 'char' ][ 'options' ][ 'rate_limit' ]  = true
-  defaults[ 'char' ][ 'options' ][ 'pause_notify' ]  = false
-  defaults[ 'char' ][ 'seen' ] = { }
-  self[ 'db' ] = LibStub( 'AceDB-3.0' ):New(
-    'wc', defaults, true
-  )
-
-end
-
--- activated app handler
---
--- returns void
-function wc:OnEnable( )
-
-  self:Enable( )
-  self:init( )
-
 end

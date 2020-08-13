@@ -3,18 +3,17 @@
 -- Emerald Dream/Grobbulus --------
 
 -- 
-local wc = LibStub( 'AceAddon-3.0' ):GetAddon( 'wc' )
-local ui = wc:NewModule( 'ui', 'AceConsole-3.0' )
+local ui = LibStub( 'AceAddon-3.0' ):GetAddon( 'wc' )
 local utility = LibStub:GetLibrary( 'utility' )
 
 -- setup addon
 --
 -- returns void
-function ui:init( )
+function ui:setup( )
 
   self:RegisterChatCommand( 'wc', 'processInput' )
   self[ 'channels' ]              = self:getChannels( )
-  self[ 'persistence' ]           = wc:getNameSpace( )
+  self[ 'persistence' ]           = ui:getNameSpace( )
   self[ 'persistence' ][ 'seen' ] = { }
 
   --[[
@@ -80,9 +79,9 @@ function ui:color( input, theme )
     theme = 'info'
   end
   return CreateColor(
-    wc[ 'theme' ][ theme ][ 'r' ], 
-    wc[ 'theme' ][ theme ][ 'g' ], 
-    wc[ 'theme' ][ theme ][ 'b' ] 
+    ui[ 'theme' ][ theme ][ 'r' ], 
+    ui[ 'theme' ][ theme ][ 'g' ], 
+    ui[ 'theme' ][ theme ][ 'b' ] 
   ):WrapTextInColorCode( input )
 
 end
@@ -92,6 +91,10 @@ end
 -- returns void
 function ui:watch( input )
 
+  if input == nil then
+    ui:warn( 'try /wc watch keyword' )
+    return false
+  end
   local iterator = 0
   local found = false
   for i, keyword in pairs( self[ 'watches' ] ) do
@@ -102,9 +105,9 @@ function ui:watch( input )
   end
   if not found then
     tinsert( self[ 'watches' ], input )
-    wc:notify( 'watching ' .. input )
+    ui:info( 'watching ' .. input )
   else
-    wc:warn( 'already watching ' .. input )
+    ui:warn( 'already watching ' .. input )
   end
 
 end
@@ -114,12 +117,16 @@ end
 -- returns void
 function ui:unwatch( input )
 
-   for i, keyword in pairs( self[ 'watches' ] ) do
+  if input == nil then
+    ui:warn( 'try /wc unwatch keyword' )
+    return false
+  end
+  for i, keyword in pairs( self[ 'watches' ] ) do
     if strlower( input ) == strlower( keyword ) then
       tremove( self[ 'watches' ], i )
-      wc:warn( 'no longer watching ' .. input )
+      ui:warn( 'no longer watching ' .. input )
     end
-   end
+  end
 
 end
 
@@ -128,6 +135,10 @@ end
 -- returns void
 function ui:ignore( input )
 
+  if input == nil then
+    ui:warn( 'try /wc ignore keyword' )
+    return false
+  end
   local iterator = 0
   local found = false
   for i, keyword in pairs( self[ 'ignores' ] ) do
@@ -138,9 +149,9 @@ function ui:ignore( input )
   end
   if not found then
     tinsert( self[ 'ignores' ], input )
-    wc:notify( 'ignoring ' .. input )
+    ui:info( 'ignoring ' .. input )
   else
-    wc:warn( 'already ignoring ' .. input )
+    ui:warn( 'already ignoring ' .. input )
   end
 
 end
@@ -150,12 +161,16 @@ end
 -- returns void
 function ui:unignore( input )
 
-   for i, keyword in pairs( self[ 'ignores' ] ) do
+  if input == nil then
+    ui:warn( 'try /wc unignore keyword' )
+    return false
+  end
+  for i, keyword in pairs( self[ 'ignores' ] ) do
     if strlower( input ) == strlower( keyword ) then
       tremove( self[ 'ignores' ], i )
-      wc:warn( 'no longer ignoring ' .. input )
+      ui:warn( 'no longer ignoring ' .. input )
     end
-   end
+  end
 
 end
 
@@ -165,10 +180,10 @@ end
 function ui:list( )
 
   for i, keyword in pairs( self[ 'watches' ] ) do
-    wc:notify( 'watching ' .. keyword )
+    ui:info( 'watching ' .. keyword )
   end
   for i, keyword in pairs( self[ 'ignores' ] ) do
-    wc:warn( 'ignoring ' .. keyword )
+    ui:warn( 'ignoring ' .. keyword )
   end
 
 end
@@ -180,10 +195,10 @@ function ui:sound( )
 
   if self[ 'options' ][ 'sound' ] == false then
     self[ 'options' ][ 'sound' ]  = true
-    wc:warn( 'enabled sound' )
+    ui:info( 'enabled sound' )
   else
     self[ 'options' ][ 'sound' ]  = false
-    wc:warn( 'disabled sound' )
+    ui:warn( 'disabled sound' )
   end
 
 end
@@ -195,10 +210,10 @@ function ui:rate( )
 
   if self[ 'options' ][ 'rate_limit' ] == false then
     self[ 'options' ][ 'rate_limit' ]  = true
-    wc:warn( 'enabled limit' )
+    ui:info( 'enabled limit' )
   else
     self[ 'options' ][ 'rate_limit' ]  = false
-    wc:warn( 'disabled limit' )
+    ui:warn( 'disabled limit' )
   end
 
 end
@@ -210,10 +225,10 @@ function ui:notify( )
 
   if self[ 'options' ][ 'pause_notify' ] == false then
     self[ 'options' ][ 'pause_notify' ]  = true
-    wc:warn( 'diabled notify' )
+    ui:warn( 'diabled notify' )
   else
     self[ 'options' ][ 'pause_notify' ]  = false
-    wc:warn( 'enabled notify' )
+    ui:info( 'enabled notify' )
   end
 
 end
@@ -223,28 +238,28 @@ end
 -- returns void
 function ui:help( )
 
-  wc:warn( '-- watch keyword: try /wc watch' )
-  wc:warn( '-- unwatch keyword: try /wc unwatch' )
-  wc:warn( '-- ignore keyword: try /wc ignore' )
-  wc:warn( '-- unignore keyword: try /wc unignore' )
-  wc:warn( '-- display keywords: try /wc list' )
-  wc:warn( '-- toggle sound: try /wc sound' )
-  wc:warn( '-- toggle limit: try /wc limit' )
-  wc:warn( '-- toggle notify: try /wc notify' )
+  ui:warn( '-- watch keyword: try /wc watch' )
+  ui:warn( '-- unwatch keyword: try /wc unwatch' )
+  ui:warn( '-- ignore keyword: try /wc ignore' )
+  ui:warn( '-- unignore keyword: try /wc unignore' )
+  ui:warn( '-- display keywords: try /wc list' )
+  ui:warn( '-- toggle sound: try /wc sound' )
+  ui:warn( '-- toggle limit: try /wc limit' )
+  ui:warn( '-- toggle notify: try /wc notify' )
   if self[ 'options' ][ 'sound' ] == true then
-    wc:notify( 'sound is enabled' )
+    ui:info( 'sound is enabled' )
   else
-    wc:warn( 'sound is disabled' )
+    ui:warn( 'sound is disabled' )
   end
   if self[ 'options' ][ 'rate_limit' ] == true then
-    wc:notify( 'limit is enabled' )
+    ui:info( 'limit is enabled' )
   else
-    wc:warn( 'limit is disabled' )
+    ui:warn( 'limit is disabled' )
   end
   if self[ 'options' ][ 'pause_notify' ] == true then
-    wc:warn( 'notify is disabled' )
+    ui:warn( 'notify is disabled' )
   else
-    wc:notify( 'notify is enabled' )
+    ui:info( 'notify is enabled' )
   end
 
 end
@@ -272,18 +287,19 @@ function ui:filter( event, message, sender, ... )
     end
   end
   if found == true then
-    wc:cache( sender, message )
+    ui:cache( sender, message )
     if ui[ 'options' ][ 'rate_limit' ] == true then
       if ui[ 'seen' ][ sender ][ message ][ 'count' ] >= ui[ 'limit' ] then
         return true
       end
     end
-    local prefix = ui:color( wc:GetName( ) .. ' {diamond} ' )
+    local prefix = ui:color( ui:GetName( ) .. ' {diamond} ' )
     if ui[ 'options' ][ 'sound' ] == true then
       PlaySound( SOUNDKIT.TELL_MESSAGE )
     end
     return false, string.join( '', prefix, ui:color( message, 'text' ) ), sender, ...
   end
+
 end
 
 -- watch chat
@@ -297,20 +313,20 @@ function ui:listen( )
     f:RegisterEvent( event )
   end
   for _, channel in pairs( self[ 'channels' ] ) do
-    wc:notify( 'WATCHING ' .. channel[ 'name' ] )
+    ui:info( 'WATCHING ' .. channel[ 'name' ] )
   end
   local guild_name = GetGuildInfo( 'player' )
   if guild_name ~= nil then
-    wc:notify( 'WATCHING ' .. guild_name )
+    ui:info( 'WATCHING ' .. guild_name )
   end
-  local i = CreateFrame( 'Frame' )
-  i:RegisterEvent( 'PLAYER_LOGOUT' )
+  f = CreateFrame( 'Frame' )
+  f:RegisterEvent( 'PLAYER_LOGOUT' )
   local function logoutHandler( self, event, ... )
     if event == 'PLAYER_LOGOUT' then
       ui[ 'seen' ]  = { }
     end
   end
-  i:SetScript( 'OnEvent', logoutHandler )
+  f:SetScript( 'OnEvent', logoutHandler )
   self:help( )
 
 end
@@ -344,6 +360,6 @@ end
 --
 -- returns void
 function ui:OnEnable( )
-  self:init( )
+  self:setup( )
   self:listen( )
 end
