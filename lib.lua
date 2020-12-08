@@ -102,7 +102,7 @@ function wc:getNameSpace( )
   if db == nil then
     local defaults = { }
     defaults[ 'char' ] = { }
-    defaults[ 'char' ][ 'watch' ] = { }
+    defaults[ 'char' ][ 'watch' ] = { strlower( GetUnitName( 'player' ) ) }
     defaults[ 'char' ][ 'ignore' ] = { }
     defaults[ 'char' ][ 'options' ]  = { }
     defaults[ 'char' ][ 'options' ][ 'sound' ]  = true

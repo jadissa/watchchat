@@ -269,17 +269,25 @@ end
 -- returns void
 function ui:filter( event, message, sender, ... )
   
+  -- ignore everything the player says
+  -- do not highlight
   if message == nil or sender == GetUnitName( 'player' ) .. '-' .. GetRealmName() then
     return false, message, sender, ...
   end
+
+  -- ignore everything on the ignore list
   for _, ignore in pairs( ui[ 'ignores' ] ) do
     if strlower( message ):find( strlower( ignore ) ) then
       return true
     end
   end
+
+  -- ignore everything if paused
   if ui[ 'options' ][ 'pause_notify' ] == true then
     return false, message, sender, ...
   end
+
+  -- check for matching watch
   local found = false
   for _, watch in pairs( ui[ 'watches' ] ) do
     if strlower( message ):find( strlower( watch ) ) then
