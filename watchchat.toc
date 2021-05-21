@@ -11,8 +11,13 @@
 ## DefaultState: enabled
 ## SavedVariables: wc
 
-## Interface: 11305
+#@retail@
+## Interface: 90001
+#@end-retail@
+#@non-retail@
+## Interface: 20501
 #/run print((select(4, GetBuildInfo())));
+#@end-non-retail@
 
 # Includes
 libs\AceDB-3.0\AceDB-3.0.xml
